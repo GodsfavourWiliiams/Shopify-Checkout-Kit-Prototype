@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { describeCheckoutError } from './checkout-error';
 
 const EVENT_MESSAGES = {
   'ec.start': 'Checkout loaded in the popup.',
@@ -16,10 +17,12 @@ const EVENT_MESSAGES = {
 export default function Home() {
   const containerRef = useRef(null);
   const checkoutRef = useRef(null);
+  const lastErrorRef = useRef(null);
   const [ready, setReady] = useState(false);
   const [url, setUrl] = useState('');
   const [status, setStatus] = useState('Loading Checkout Kit…');
   const [events, setEvents] = useState([]);
+  const [checkoutError, setCheckoutError] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -39,15 +42,27 @@ export default function Home() {
           checkout.addEventListener(
             name,
             (event) => {
-              setStatus(message);
+              if (name === 'ec.error') {
+                const failure = describeCheckoutError(event.detail?.error);
+                lastErrorRef.current = failure;
+                setCheckoutError(failure);
+                setStatus(failure.title);
+                setEvents((previous) => [
+                  { id: crypto.randomUUID(), name, detail: failure.code, time: new Date().toLocaleTimeString() },
+                  ...previous,
+                ]);
+                return;
+              }
+
+              // An unrecoverable SDK error closes the popup. Keep the useful
+              // error visible instead of replacing it with "popup closed".
+              if (name !== 'ec.close' || !lastErrorRef.current) {
+                setStatus(message);
+              }
               setEvents((previous) => [
                 { id: crypto.randomUUID(), name, time: new Date().toLocaleTimeString() },
                 ...previous,
               ]);
-
-              if (name === 'ec.error') {
-                console.error('Checkout Kit error', event.detail?.error);
-              }
             },
             { signal: controller.signal },
           );
@@ -58,8 +73,14 @@ export default function Home() {
       })
       .catch((error) => {
         if (!cancelled) {
-          setStatus('Could not load Checkout Kit. Check the browser console.');
-          console.error('Checkout Kit import failed', error);
+          const failure = {
+            code: 'sdk_load_failed',
+            title: 'Checkout Kit could not load.',
+            detail: error instanceof Error ? error.message : 'Refresh the page and try again.',
+          };
+          lastErrorRef.current = failure;
+          setCheckoutError(failure);
+          setStatus(failure.title);
         }
       });
 
@@ -93,18 +114,31 @@ export default function Home() {
       return;
     }
 
+    lastErrorRef.current = null;
+    setCheckoutError(null);
     checkout.src = checkoutUrl.href;
     setEvents((previous) => [
       { id: crypto.randomUUID(), name: 'open requested', time: new Date().toLocaleTimeString() },
       ...previous,
     ]);
-    setStatus('Opening Shopify checkout in a separate popup window…');
-    checkout.open();
+    setStatus('Opening Shopify checkout in a separate window or tab…');
+    try {
+      checkout.open();
+    } catch (error) {
+      const failure = {
+        code: 'popup_open_failed',
+        title: 'The checkout popup could not open.',
+        detail: error instanceof Error ? error.message : 'Allow popups for this site, then try again.',
+      };
+      lastErrorRef.current = failure;
+      setCheckoutError(failure);
+      setStatus(failure.title);
+    }
   }
 
   function closeCheckout() {
     checkoutRef.current?.close();
-    setStatus('Popup close requested.');
+    if (!lastErrorRef.current) setStatus('Popup close requested.');
   }
 
   return (
@@ -113,7 +147,8 @@ export default function Home() {
         <p className="eyebrow">Isolated Next.js proof of concept</p>
         <h1>Shopify Checkout Kit for Web</h1>
         <p>
-          Test a real Shopify checkout URL in a popup while this page stays open.
+          Test a real Shopify checkout URL while this page stays open. Depending
+          on your browser, checkout may open in a popup window or a new tab.
           Checkout will not render inside this page or a drawer.
         </p>
       </header>
@@ -140,6 +175,13 @@ export default function Home() {
           <button type="button" className="secondary" onClick={closeCheckout}>Close popup</button>
         </div>
         <p role="status" aria-live="polite">{status}</p>
+        {checkoutError && (
+          <div className="error-panel" role="alert">
+            <strong>{checkoutError.title}</strong>
+            <p>{checkoutError.detail}</p>
+            <small>Error code: <code>{checkoutError.code}</code></small>
+          </div>
+        )}
       </form>
 
       <section className="panel" aria-labelledby="events-title">
@@ -155,6 +197,7 @@ export default function Home() {
               <li key={event.id}>
                 <time>{event.time}</time>
                 <strong>{event.name}</strong>
+                {event.detail && <span className="event-detail">{event.detail}</span>}
               </li>
             ))}
           </ol>

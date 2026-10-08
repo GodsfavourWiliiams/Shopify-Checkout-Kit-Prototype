@@ -17,7 +17,13 @@ Open `http://localhost:5174`. Paste an active HTTPS Shopify checkout URL
 `ec.close`, `ec.error`, and checkout update events.
 
 The browser may block popups unless the open action is triggered by a click.
-Checkout Kit handles this with a retry control on its overlay.
+Checkout Kit handles this with a retry control on its overlay. Some browsers
+may open the checkout in a new tab even when the SDK requests a popup window.
+
+If Shopify reports `invalid_cart`, the popup closes because the cart is no
+longer valid. The page shows that error and asks for a newly generated checkout
+link. Other SDK errors are shown in the page instead of opening a Next.js
+development error overlay.
 
 Checkout Kit for Web currently uses a separate popup window or browser tab.
 It does **not** render Shopify checkout in an iframe or the Merissa drawer.

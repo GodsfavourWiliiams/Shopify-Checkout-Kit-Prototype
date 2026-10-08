@@ -78,3 +78,16 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 .events li { padding: 12px 0; border-top: 1px solid #eee8e3; }
 
 .events time { margin-right: 12px; color: #68605b; font-size: 13px; }
+
+.event-detail { margin-left: 10px; color: #a3321c; font-size: 13px; }
+
+.error-panel {
+  padding: 16px;
+  margin-top: 16px;
+  border: 1px solid #eeb4a6;
+  border-radius: 12px;
+  background: #fff0ec;
+  color: #7f2817;
+}
+
+.error-panel p { margin: 8px 0; }

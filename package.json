@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "next dev -p 5174",
     "build": "next build",
-    "start": "next start -p 5174"
+    "start": "next start -p 5174",
+    "test": "node --test"
   },
   "dependencies": {
     "@shopify/checkout-kit": "4.0.0-alpha.4",
