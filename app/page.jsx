@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { describeCheckoutError } from './checkout-error';
+import { openCheckoutAtRight } from './popup-position';
 
 const EVENT_MESSAGES = {
   'ec.start': 'Checkout loaded in the popup.',
@@ -138,9 +139,9 @@ export default function Home() {
       { id: crypto.randomUUID(), name: 'open requested', time: new Date().toLocaleTimeString() },
       ...previous,
     ]);
-    setStatus('Opening Shopify checkout in a separate window or tab…');
+    setStatus('Requesting a checkout window on the right; your browser may open a tab instead…');
     try {
-      checkout.open();
+      openCheckoutAtRight(checkout, window);
       setCheckoutWindowOpen(true);
       confirmationTimerRef.current = setTimeout(() => {
         const failure = {
@@ -191,6 +192,10 @@ export default function Home() {
           Test a real Shopify checkout URL while this page stays open. Depending
           on your browser, checkout may open in a popup window or a new tab.
           Checkout will not render inside this page or a drawer.
+        </p>
+        <p className="hint">
+          This prototype requests placement on the right side of the browser
+          window. Browser window managers may ignore that request.
         </p>
       </header>
 

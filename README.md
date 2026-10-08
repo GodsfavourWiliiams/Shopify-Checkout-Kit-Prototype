@@ -23,8 +23,11 @@ within 20 seconds, the page offers a retry and a direct-link fallback. Some
 browsers may open checkout in a new tab even when the SDK requests a popup.
 
 Checkout Kit centers its popup. Its supported CSS options control dimensions,
-not the popup's screen position, so this demo does not try to force it to the
-right side of the display.
+not screen position. For this prototype only, the demo temporarily adjusts the
+`window.open` geometry that Checkout Kit passes to the browser, requesting a
+right-aligned window. The original `window.open` function is restored
+immediately. Browsers may ignore positioning or open a tab instead. This is an
+experimental workaround, not a supported Checkout Kit integration API.
 
 If Shopify reports `invalid_cart`, Checkout Kit may close the popup. That does
 not prove the original URL is invalid in a normal browser. The page preserves
