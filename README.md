@@ -17,8 +17,14 @@ Open `http://localhost:5174`. Paste an active HTTPS Shopify checkout URL
 `ec.close`, `ec.error`, and checkout update events.
 
 The browser may block popups unless the open action is triggered by a click.
-Checkout Kit handles this with a retry control on its overlay. Some browsers
-may open the checkout in a new tab even when the SDK requests a popup window.
+The demo hides Checkout Kit's blocking overlay and shows a small top-left
+button to refocus the checkout window. If checkout does not confirm opening
+within 20 seconds, the page offers a retry and a direct-link fallback. Some
+browsers may open checkout in a new tab even when the SDK requests a popup.
+
+Checkout Kit centers its popup. Its supported CSS options control dimensions,
+not the popup's screen position, so this demo does not try to force it to the
+right side of the display.
 
 If Shopify reports `invalid_cart`, Checkout Kit may close the popup. That does
 not prove the original URL is invalid in a normal browser. The page preserves

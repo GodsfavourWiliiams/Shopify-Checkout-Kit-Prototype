@@ -100,3 +100,15 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   font-weight: 700;
   text-decoration: underline;
 }
+
+/* Shopify documents this part as the supported way to hide its blocking scrim. */
+shopify-checkout::part(overlay) { display: none; }
+
+.checkout-focus-button {
+  position: fixed;
+  z-index: 10;
+  top: 16px;
+  left: 16px;
+  padding: 10px 16px;
+  box-shadow: 0 6px 18px rgb(46 30 17 / 15%);
+}

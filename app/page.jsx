@@ -18,7 +18,9 @@ export default function Home() {
   const containerRef = useRef(null);
   const checkoutRef = useRef(null);
   const lastErrorRef = useRef(null);
+  const confirmationTimerRef = useRef(null);
   const [ready, setReady] = useState(false);
+  const [checkoutWindowOpen, setCheckoutWindowOpen] = useState(false);
   const [url, setUrl] = useState('');
   const [attemptedUrl, setAttemptedUrl] = useState('');
   const [status, setStatus] = useState('Loading Checkout Kit…');
@@ -43,6 +45,11 @@ export default function Home() {
           checkout.addEventListener(
             name,
             (event) => {
+              if (['ec.start', 'ec.complete', 'ec.close', 'ec.error'].includes(name)) {
+                clearTimeout(confirmationTimerRef.current);
+                confirmationTimerRef.current = null;
+              }
+
               if (name === 'ec.error') {
                 const failure = describeCheckoutError(event.detail?.error);
                 lastErrorRef.current = failure;
@@ -54,6 +61,12 @@ export default function Home() {
                 ]);
                 return;
               }
+
+              if (name === 'ec.start') {
+                lastErrorRef.current = null;
+                setCheckoutError(null);
+              }
+              if (name === 'ec.close') setCheckoutWindowOpen(false);
 
               // An unrecoverable SDK error closes the popup. Keep the useful
               // error visible instead of replacing it with "popup closed".
@@ -88,6 +101,7 @@ export default function Home() {
     return () => {
       cancelled = true;
       controller.abort();
+      clearTimeout(confirmationTimerRef.current);
       checkoutRef.current?.remove();
       checkoutRef.current = null;
     };
@@ -118,6 +132,7 @@ export default function Home() {
     lastErrorRef.current = null;
     setCheckoutError(null);
     setAttemptedUrl(checkoutUrl.href);
+    clearTimeout(confirmationTimerRef.current);
     checkout.src = checkoutUrl.href;
     setEvents((previous) => [
       { id: crypto.randomUUID(), name: 'open requested', time: new Date().toLocaleTimeString() },
@@ -126,7 +141,19 @@ export default function Home() {
     setStatus('Opening Shopify checkout in a separate window or tab…');
     try {
       checkout.open();
+      setCheckoutWindowOpen(true);
+      confirmationTimerRef.current = setTimeout(() => {
+        const failure = {
+          code: 'checkout_not_confirmed',
+          title: 'Checkout did not confirm opening.',
+          detail: 'The popup may have been blocked, or Shopify may still be loading. Try opening it again from this page, or use the original checkout link below.',
+        };
+        lastErrorRef.current = failure;
+        setCheckoutError(failure);
+        setStatus(failure.title);
+      }, 20000);
     } catch (error) {
+      setCheckoutWindowOpen(false);
       const failure = {
         code: 'popup_open_failed',
         title: 'The checkout popup could not open.',
@@ -139,12 +166,24 @@ export default function Home() {
   }
 
   function closeCheckout() {
+    clearTimeout(confirmationTimerRef.current);
+    confirmationTimerRef.current = null;
     checkoutRef.current?.close();
+    setCheckoutWindowOpen(false);
     if (!lastErrorRef.current) setStatus('Popup close requested.');
   }
 
   return (
     <main className="app">
+      {checkoutWindowOpen && (
+        <button
+          type="button"
+          className="checkout-focus-button"
+          onClick={() => checkoutRef.current?.focus()}
+        >
+          Continue in checkout window ↗
+        </button>
+      )}
       <header>
         <p className="eyebrow">Isolated Next.js proof of concept</p>
         <h1>Shopify Checkout Kit for Web</h1>
@@ -170,6 +209,8 @@ export default function Home() {
             setCheckoutError(null);
             setAttemptedUrl('');
             lastErrorRef.current = null;
+            clearTimeout(confirmationTimerRef.current);
+            confirmationTimerRef.current = null;
           }}
           required
         />
