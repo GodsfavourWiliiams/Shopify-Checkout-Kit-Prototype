@@ -20,6 +20,7 @@ export default function Home() {
   const lastErrorRef = useRef(null);
   const [ready, setReady] = useState(false);
   const [url, setUrl] = useState('');
+  const [attemptedUrl, setAttemptedUrl] = useState('');
   const [status, setStatus] = useState('Loading Checkout Kit…');
   const [events, setEvents] = useState([]);
   const [checkoutError, setCheckoutError] = useState(null);
@@ -116,6 +117,7 @@ export default function Home() {
 
     lastErrorRef.current = null;
     setCheckoutError(null);
+    setAttemptedUrl(checkoutUrl.href);
     checkout.src = checkoutUrl.href;
     setEvents((previous) => [
       { id: crypto.randomUUID(), name: 'open requested', time: new Date().toLocaleTimeString() },
@@ -163,7 +165,12 @@ export default function Home() {
           autoComplete="off"
           spellCheck="false"
           value={url}
-          onChange={(event) => setUrl(event.target.value)}
+          onChange={(event) => {
+            setUrl(event.target.value);
+            setCheckoutError(null);
+            setAttemptedUrl('');
+            lastErrorRef.current = null;
+          }}
           required
         />
         <p className="hint">
@@ -180,6 +187,11 @@ export default function Home() {
             <strong>{checkoutError.title}</strong>
             <p>{checkoutError.detail}</p>
             <small>Error code: <code>{checkoutError.code}</code></small>
+            {attemptedUrl && (
+              <a className="fallback-link" href={attemptedUrl} target="_blank" rel="noopener noreferrer">
+                Open the original checkout link in a new tab
+              </a>
+            )}
           </div>
         )}
       </form>

@@ -11,8 +11,8 @@ export function describeCheckoutError(error) {
   if (code === 'invalid_cart') {
     return {
       code,
-      title: 'This checkout link is no longer valid.',
-      detail: 'Create a new cart or checkout session and paste its new link. The old link cannot be reused.',
+      title: 'Checkout Kit could not use this cart.',
+      detail: 'Shopify rejected this cart in Checkout Kit mode. The original link may still work in a regular browser tab; open it directly to compare, or try a newly generated checkout link.',
     };
   }
 

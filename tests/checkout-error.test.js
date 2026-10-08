@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { describeCheckoutError } from '../app/checkout-error.js';
 
-test('explains an expired or invalid cart with a recovery step', () => {
+test('does not claim an SDK-invalid cart is unusable in a browser', () => {
   assert.deepEqual(
     describeCheckoutError({
       status: 'error',
@@ -10,8 +10,8 @@ test('explains an expired or invalid cart with a recovery step', () => {
     }),
     {
       code: 'invalid_cart',
-      title: 'This checkout link is no longer valid.',
-      detail: 'Create a new cart or checkout session and paste its new link. The old link cannot be reused.',
+      title: 'Checkout Kit could not use this cart.',
+      detail: 'Shopify rejected this cart in Checkout Kit mode. The original link may still work in a regular browser tab; open it directly to compare, or try a newly generated checkout link.',
     },
   );
 });

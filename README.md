@@ -20,10 +20,10 @@ The browser may block popups unless the open action is triggered by a click.
 Checkout Kit handles this with a retry control on its overlay. Some browsers
 may open the checkout in a new tab even when the SDK requests a popup window.
 
-If Shopify reports `invalid_cart`, the popup closes because the cart is no
-longer valid. The page shows that error and asks for a newly generated checkout
-link. Other SDK errors are shown in the page instead of opening a Next.js
-development error overlay.
+If Shopify reports `invalid_cart`, Checkout Kit may close the popup. That does
+not prove the original URL is invalid in a normal browser. The page preserves
+the SDK error and offers a direct-link comparison. Other SDK errors are shown
+in the page instead of opening a Next.js development error overlay.
 
 Checkout Kit for Web currently uses a separate popup window or browser tab.
 It does **not** render Shopify checkout in an iframe or the Merissa drawer.
