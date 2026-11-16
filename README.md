@@ -1,4 +1,4 @@
-# Merissa Checkout Kit demo
+#  Checkout Kit demo
 
 Standalone proof of concept for Shopify Checkout Kit for Web. This repository is
 separate from the Merissa application; it does not change the app's checkout
